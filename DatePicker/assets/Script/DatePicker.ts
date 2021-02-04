@@ -12,6 +12,9 @@ const {ccclass, property} = cc._decorator;
 let DatePickerNameTag   = {
    
 }
+const EventName = {
+    onChange : "onChange"
+}
 
 
 interface IDateProps {
@@ -66,6 +69,10 @@ export default class DatePicker extends cc.Component {
         this.currentSelectedDate = new Date();
         this.setupSelectedMonthCalender(this.currentSelectedDate);
         //Sunday Monday Title
+        //Temp Remove it
+        this.node.on(EventName.onChange, (date)=>{
+            console.log(`Selelcted Data=${date} `);
+        }, this);
     }
 
 
@@ -233,6 +240,10 @@ export default class DatePicker extends cc.Component {
         return tempDate;
     }
 
+    emitSelectedDate():void{
+        this.node.emit(EventName.onChange, this.currentSelectedDate);
+    }
+
     setupDaysTitleBar() {
         var calTitleBar     =   cc.instantiate(this.calenderBar);
         this.calenderBase.addChild(calTitleBar);
@@ -390,6 +401,7 @@ export default class DatePicker extends cc.Component {
                 this.updateCalenderWithSelectedYear(calenderItem);
                 break;
         }
+        this.emitSelectedDate();
     }
 
     updateCalenderWithSelectedDate(calenderItem : CalenderItem) {
