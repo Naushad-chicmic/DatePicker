@@ -1,0 +1,8 @@
+{
+  "engine": "cocos-creator-js",
+  "packages": "packages",
+  "name": "DatePicker",
+  "id": "9ca78004-b505-4d42-93d8-9fa2304a5d41",
+  "version": "2.4.3",
+  "isNew": false
+}
