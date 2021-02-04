@@ -10,7 +10,7 @@ import CalenderItem from "./CalenderItem";
 
 const {ccclass, property} = cc._decorator;
 let DatePickerNameTag   = {
-    NAVIGATION_BAR_TAG  :   "navigationBar"
+   
 }
 
 
@@ -57,6 +57,9 @@ export default class DatePicker extends cc.Component {
 
     @property(cc.Prefab)
     calenderNavigationBar    :   cc.Prefab   =   null;
+
+    @property(cc.Node)
+    navBar    :   cc.Node  =   null; //Navigation bar 
 
 
     onLoad () {
@@ -165,10 +168,9 @@ export default class DatePicker extends cc.Component {
     }
 
     setupCalenderNavigationBar(text : string) {
-        var navigationBar   =   cc.instantiate(this.calenderNavigationBar);
+        var navigationBar   =  this.navBar;
         navigationBar.getChildByName('CurrentDate').on('click', this.navTabCb, this);
-        navigationBar.name  =   DatePickerNameTag.NAVIGATION_BAR_TAG;
-        this.calenderBase.addChild(navigationBar);
+        // this.calenderBase.addChild(navigationBar);
         this.updateCalenderNavigationBarDate(text);
     }
 
@@ -177,7 +179,7 @@ export default class DatePicker extends cc.Component {
         var month   =   this.getDateSplit().month;
         var year    =   this.getDateSplit().year;
 
-        var navigationBar                       =   this.calenderBase.getChildByName(DatePickerNameTag.NAVIGATION_BAR_TAG);
+        var navigationBar                       =   this.navBar;
         var currentDateViewNode                 =   navigationBar.getChildByName("CurrentDate");
         var dateTitle                           =   currentDateViewNode.getChildByName("dateTitle");
         dateTitle.getComponent(cc.Label).string =   text;
