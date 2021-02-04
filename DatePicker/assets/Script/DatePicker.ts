@@ -61,8 +61,7 @@ export default class DatePicker extends cc.Component {
 
     onLoad () {
         this.currentSelectedDate = new Date();
-        // this.setupMonthView(new Date());
-        this.setupSelectedMonthCalender(new Date());
+        this.setupSelectedMonthCalender(this.currentSelectedDate);
         //Sunday Monday Title
     }
 
@@ -72,7 +71,39 @@ export default class DatePicker extends cc.Component {
         this._calMode = CalenderMode.Year;
         this.tempDate    =   new Date(dateString);
         this.calenderBase.removeAllChildren(true);
-        this.setupCalenderNavigationBar();
+        this.setupEmptyBar();
+        this.setupCalenderNavigationBar((this.tempDate.getFullYear() - 11) + "-"+this.tempDate.getFullYear());
+        this.setupYearData(this.tempDate);
+    }
+
+    setupYearData(dateString) {
+        var day     =   this.getDateSplit().day;
+        var month   =   this.getDateSplit().month;
+        var year    =   this.getDateSplit().year;
+
+        var calenderBar =   cc.instantiate(this.calenderBar)
+        this.calenderBase.addChild(calenderBar);
+
+        for (var yearCounter = 12; yearCounter >= 1; yearCounter--) {
+            var calenderItem    =   cc.instantiate(this.calenderItem);
+            calenderBar.addChild(calenderItem);
+            var calculatedYear  =   (year - yearCounter);
+
+            var calenderItemProperties  =   {
+                text            :   year - (yearCounter - 1),
+                selectionStatus :   year == calculatedYear ? true : false,
+                itemOpacity     :   255,
+                date            :   new Date()
+            }
+
+            calenderItem.getComponent("CalenderItem").initialiseItemWithValue(calenderItemProperties);
+            calenderItem.on(cc.Node.EventType.TOUCH_START, this.updateCalender, this);
+
+            if ((yearCounter - 1) % 4 == 0 && yearCounter != 12) {
+                calenderBar =   cc.instantiate(this.calenderBar)
+                this.calenderBase.addChild(calenderBar);
+            }
+        }
     }
 
     /********************** MONTH VIEW ****************************/
@@ -81,7 +112,7 @@ export default class DatePicker extends cc.Component {
         this.tempDate    =   new Date(dateString);
         this.calenderBase.removeAllChildren(true);
         this.setupEmptyBar();
-        this.setupCalenderNavigationBar();
+        this.setupCalenderNavigationBar(""+this.tempDate.getFullYear());
         this.setupMonthData();
     }
 
@@ -102,8 +133,7 @@ export default class DatePicker extends cc.Component {
                 text            :   this.monthMap[monthCounter],
                 selectionStatus :   month == monthCounter ? true : false,
                 itemOpacity     :   255,
-                date            :   new Date(),
-                monthCounter    :   monthCounter
+                date            :   new Date()
             }
 
             calenderItem.getComponent("CalenderItem").initialiseItemWithValue(calenderItemProperties);
@@ -122,7 +152,7 @@ export default class DatePicker extends cc.Component {
         this.tempDate    =   new Date(dateString);
         this.calenderBase.removeAllChildren(true);
         this.setupEmptyBar();
-        this.setupCalenderNavigationBar();
+        this.setupCalenderNavigationBar(this.monthMap[this.tempDate.getMonth()] + " " +this.tempDate.getFullYear());
         this.setupEmptyBar();
         this.setupDaysTitleBar();
         this.setupDaysData();
@@ -134,15 +164,15 @@ export default class DatePicker extends cc.Component {
         this.calenderBase.addChild(emptyBar);
     }
 
-    setupCalenderNavigationBar() {
+    setupCalenderNavigationBar(text : string) {
         var navigationBar   =   cc.instantiate(this.calenderNavigationBar);
         navigationBar.getChildByName('CurrentDate').on('click', this.navTabCb, this);
         navigationBar.name  =   DatePickerNameTag.NAVIGATION_BAR_TAG;
         this.calenderBase.addChild(navigationBar);
-        this.updateCalenderNavigationBarDate();
+        this.updateCalenderNavigationBarDate(text);
     }
 
-    updateCalenderNavigationBarDate() {
+    updateCalenderNavigationBarDate(text : string) {
         var day     =   this.getDateSplit().day;
         var month   =   this.getDateSplit().month;
         var year    =   this.getDateSplit().year;
@@ -150,7 +180,7 @@ export default class DatePicker extends cc.Component {
         var navigationBar                       =   this.calenderBase.getChildByName(DatePickerNameTag.NAVIGATION_BAR_TAG);
         var currentDateViewNode                 =   navigationBar.getChildByName("CurrentDate");
         var dateTitle                           =   currentDateViewNode.getChildByName("dateTitle");
-        dateTitle.getComponent(cc.Label).string =   this.monthMap[month] + " " +year;
+        dateTitle.getComponent(cc.Label).string =   text;
 
         var leftNavigationButton                =   navigationBar.getChildByName("LeftNavigation");
         var rightNavigationButton               =   navigationBar.getChildByName("RightNavigation");
@@ -188,7 +218,6 @@ export default class DatePicker extends cc.Component {
                     selectionStatus :   status,
                     itemOpacity     :   itemOpacity,
                     date            :   this.getDate(monthArray[counter *7 + childrenCounter]),
-                    monthCounter    :   month
                 }
                 calenderItem.getComponent("CalenderItem").initialiseItemWithValue(calenderItemProperties);
                 calenderItem.on(cc.Node.EventType.TOUCH_START, this.updateCalender, this);
@@ -244,8 +273,13 @@ export default class DatePicker extends cc.Component {
                 this.decrementMonthDate(12);
                 this.setupMonthView(this.tempDate.toDateString());
                 break;
+            case CalenderMode.Year:
+                this.decrementMonthDate(12);
+                this.setupMonthView(this.tempDate.toDateString());
+                break;
         }
     }
+
     incrementDate(){
         switch(this._calMode){
             case CalenderMode.Date:
@@ -254,6 +288,10 @@ export default class DatePicker extends cc.Component {
                 break;
             case CalenderMode.Month:
                 this.incrementMonthDate(12);
+                this.setupMonthView(this.tempDate.toDateString());
+                break;
+            case CalenderMode.Year:
+                this.decrementMonthDate(12);
                 this.setupMonthView(this.tempDate.toDateString());
                 break;
         }
@@ -346,6 +384,9 @@ export default class DatePicker extends cc.Component {
             case CalenderMode.Month:
                 this.updateCalenderWithSelectedMonth(calenderItem);
                 break;
+            case CalenderMode.Year:
+                this.updateCalenderWithSelectedYear(calenderItem);
+                break;
         }
     }
 
@@ -355,10 +396,17 @@ export default class DatePicker extends cc.Component {
     }
 
     updateCalenderWithSelectedMonth(calenderItem : CalenderItem) {
-        var monthCounter            =   calenderItem.getComponent("CalenderItem").monthCounter;
+        console.log("updateCalenderWithSelectedMonth called");
+        var monthCounter            =   this.monthMap.indexOf(calenderItem.getComponent("CalenderItem").text);
         this.tempDate.setMonth(monthCounter, 1);
         this.setupSelectedMonthCalender(this.tempDate.toDateString());
     }
+    updateCalenderWithSelectedYear(calenderItem : CalenderItem) {
+        var selectedYear            =   parseInt(calenderItem.getComponent("CalenderItem").text);
+        this.tempDate.setFullYear(selectedYear, 1);
+        this.setupSelectedMonthCalender(this.tempDate.toDateString());
+    }
+
     // update (dt) {}
 
     getDateSplit() : DateProps {
@@ -366,5 +414,5 @@ export default class DatePicker extends cc.Component {
         return new DateProps(currDate.getDate(), currDate.getMonth(), currDate.getFullYear());
     }
 
-    
+
 }

@@ -11,8 +11,7 @@ interface calenderItemProperties {
     text            :   string,
     selectionStatus :   boolean,
     itemOpacity     :   number,
-    date            :   Date,
-    monthCounter    :   number
+    date?           :   Date,
 };
 
 @ccclass
@@ -26,12 +25,10 @@ export default class CalenderItem extends cc.Component {
     title           :   cc.Label    =   null;
 
     initialiseItemWithValue(props:calenderItemProperties) : void {
-        console.log("calenderProperties: ", props);
         this.text               =   props.text;
         this.title.string       =   props.text;
         this.selectionStatus    =   props.selectionStatus;
         this.currentDate        =   props.date;
-        this.monthCounter       =   props.monthCounter;
 
         this.node.getChildByName("Background").active =   props.selectionStatus;
 
