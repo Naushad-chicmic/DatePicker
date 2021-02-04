@@ -274,8 +274,8 @@ export default class DatePicker extends cc.Component {
                 this.setupMonthView(this.tempDate.toDateString());
                 break;
             case CalenderMode.Year:
-                this.decrementMonthDate(12);
-                this.setupMonthView(this.tempDate.toDateString());
+                this.decrementMonthDate(12*12);
+                this.setupYearView(this.tempDate.toDateString());
                 break;
         }
     }
@@ -291,8 +291,8 @@ export default class DatePicker extends cc.Component {
                 this.setupMonthView(this.tempDate.toDateString());
                 break;
             case CalenderMode.Year:
-                this.decrementMonthDate(12);
-                this.setupMonthView(this.tempDate.toDateString());
+                this.incrementMonthDate(12*12);
+                this.setupYearView(this.tempDate.toDateString());
                 break;
         }
     }
