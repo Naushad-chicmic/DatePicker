@@ -57,7 +57,7 @@ export default class DatePicker extends cc.Component {
 
     @property(cc.Prefab)
     calenderNavigationBar    :   cc.Prefab   =   null;
-    
+
 
     onLoad () {
         this.currentSelectedDate = new Date();
@@ -73,7 +73,6 @@ export default class DatePicker extends cc.Component {
         this.tempDate    =   new Date(dateString);
         this.calenderBase.removeAllChildren(true);
         this.setupCalenderNavigationBar();
-    
     }
 
     /********************** MONTH VIEW ****************************/
@@ -103,10 +102,12 @@ export default class DatePicker extends cc.Component {
                 text            :   this.monthMap[monthCounter],
                 selectionStatus :   month == monthCounter ? true : false,
                 itemOpacity     :   255,
-                date            :   new Date()
+                date            :   new Date(),
+                monthCounter    :   monthCounter
             }
+
             calenderItem.getComponent("CalenderItem").initialiseItemWithValue(calenderItemProperties);
-            calenderItem.on(cc.Node.EventType.TOUCH_START, this.updateCalenderWithSelectedDate, this);
+            calenderItem.on(cc.Node.EventType.TOUCH_START, this.updateCalender, this);
 
             if ((monthCounter+1) % 4 == 0 && monthCounter != 0) {
                 calenderBar =   cc.instantiate(this.calenderBar)
@@ -186,10 +187,11 @@ export default class DatePicker extends cc.Component {
                     text            :   ""+monthArray[counter *7 + childrenCounter].date.toString(),
                     selectionStatus :   status,
                     itemOpacity     :   itemOpacity,
-                    date            :   this.getDate(monthArray[counter *7 + childrenCounter])
+                    date            :   this.getDate(monthArray[counter *7 + childrenCounter]),
+                    monthCounter    :   month
                 }
                 calenderItem.getComponent("CalenderItem").initialiseItemWithValue(calenderItemProperties);
-                calenderItem.on(cc.Node.EventType.TOUCH_START, this.updateCalenderWithSelectedDate, this);
+                calenderItem.on(cc.Node.EventType.TOUCH_START, this.updateCalender, this);
             }
         }
     }
@@ -219,6 +221,7 @@ export default class DatePicker extends cc.Component {
     start () {
 
     }
+
     navTabCb (ref){
         console.log(this._calMode);
         switch(this._calMode){
@@ -333,10 +336,28 @@ export default class DatePicker extends cc.Component {
         return this.currentSelectedDate;
     }
 
-    updateCalenderWithSelectedDate(ref) {
+    updateCalender(ref) {
+        console.log("ref: ", ref);
         var calenderItem    : CalenderItem  =   ref.target;
-        this.currentSelectedDate            =   new Date(calenderItem.getComponent("CalenderItem").currentDate);
+        switch(this._calMode){
+            case CalenderMode.Date:
+                this.updateCalenderWithSelectedDate(calenderItem);
+                break;
+            case CalenderMode.Month:
+                this.updateCalenderWithSelectedMonth(calenderItem);
+                break;
+        }
+    }
+
+    updateCalenderWithSelectedDate(calenderItem : CalenderItem) {
+        this.currentSelectedDate    =   new Date(calenderItem.getComponent("CalenderItem").currentDate);
         this.setupSelectedMonthCalender(this.currentSelectedDate.toDateString());
+    }
+
+    updateCalenderWithSelectedMonth(calenderItem : CalenderItem) {
+        var monthCounter            =   calenderItem.getComponent("CalenderItem").monthCounter;
+        this.tempDate.setMonth(monthCounter, 1);
+        this.setupSelectedMonthCalender(this.tempDate.toDateString());
     }
     // update (dt) {}
 
@@ -344,4 +365,6 @@ export default class DatePicker extends cc.Component {
         let currDate    =   this.tempDate;
         return new DateProps(currDate.getDate(), currDate.getMonth(), currDate.getFullYear());
     }
+
+    
 }
